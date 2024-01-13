@@ -1,41 +1,30 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
+
+	instagram "github.com/CyberPiess/Instagram-2.0/internal/app/Instagram"
 
 	_ "github.com/lib/pq"
 )
 
-func home(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello"))
-}
-
 func main() {
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", home)
 
-	db, err := openDB()
+	db, err := instagram.OpenDB()
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
 
+	mux.HandleFunc("/createUser", func(w http.ResponseWriter, r *http.Request) {
+		instagram.Create(w, r, db)
+	})
+
 	log.Println("Запуск веб-сервера на http://localhost:8080")
 	err = http.ListenAndServe(":8080", mux)
 	log.Fatal(err)
 
-}
-
-func openDB() (*sql.DB, error) {
-	db, err := sql.Open("postgres", "host=localhost port=5432 user=admin password=password dbname=postgres sslmode=disable")
-	if err != nil {
-		return nil, err
-	}
-	if err = db.Ping(); err != nil {
-		return nil, err
-	}
-	return db, nil
 }
