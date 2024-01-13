@@ -10,7 +10,8 @@ func ifExist(username string, db *sql.DB) *sql.Row {
 }
 
 func create(username string, password string, db *sql.DB) int {
-	_, err := db.Exec("INSERT INTO \"Users\" (username, password) ) VALUES ($1, $2)", username, password)
+	_, err := db.Query("INSERT INTO \"Users\" (username, password) VALUES ($1, $2)", username, password)
+
 	if err != nil {
 		return 500
 	}

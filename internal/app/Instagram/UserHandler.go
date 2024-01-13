@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"reflect"
 )
 
 type User struct {
@@ -29,16 +28,14 @@ func Create(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	user := new(User)
-
 	ifUserExist := ifExist(username, db)
 	err := ifUserExist.Scan(&user.username, &user.password)
 	if err != sql.ErrNoRows {
-		fmt.Println(reflect.TypeOf(err))
-		fmt.Println(err)
-		fmt.Println("User with this username already exists")
+		fmt.Fprintln(w, "User with this username already exists")
 		return
 	}
 
+	//TODO: поменять отдельные поля на структуру?
 	createResult := create(username, password, db)
 	if createResult != 200 {
 		http.Error(w, http.StatusText(createResult), createResult)
