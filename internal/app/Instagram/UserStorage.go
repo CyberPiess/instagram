@@ -17,3 +17,11 @@ func create(username string, password string, db *sql.DB) int {
 	}
 	return 200
 }
+
+func delete(username string, db *sql.DB) int {
+	_, err := db.Query("DELETE FROM \"Users\" WHERE username = $1", username)
+	if err != nil {
+		return 500
+	}
+	return 200
+}
