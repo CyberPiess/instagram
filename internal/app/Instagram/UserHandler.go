@@ -11,10 +11,6 @@ type User struct {
 	password string
 }
 
-func Home(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello"))
-}
-
 func Create(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	if r.Method != "POST" {
 		http.Error(w, http.StatusText(405), 405)
@@ -45,8 +41,43 @@ func Create(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	fmt.Fprintf(w, "User %s created sucessfully\n", username)
 }
 
-// func Update(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-// }
+func Update(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	if r.Method != "POST" {
+		http.Error(w, http.StatusText(405), 405)
+		return
+	}
+
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+	newUsername := r.FormValue("newUsername")
+	newPassword := r.FormValue("newPassword")
+	if username == "" || password == "" {
+		http.Error(w, http.StatusText(400), 400)
+	}
+
+	ifUserExist := ifExist(username, db)
+	user := new(User)
+	err := ifUserExist.Scan(&user.username, &user.password)
+	if err == sql.ErrNoRows {
+		fmt.Fprintln(w, "User with current username does not exists")
+		return
+	}
+
+	ifUserExist = ifExist(newUsername, db)
+	err = ifUserExist.Scan(newUsername)
+	if err != sql.ErrNoRows {
+		fmt.Fprintln(w, "User with new username already exists")
+		return
+	}
+
+	updateResult := update(username, password, newUsername, newPassword, db)
+	if updateResult != 200 {
+		http.Error(w, http.StatusText(updateResult), updateResult)
+		return
+	}
+
+	fmt.Fprintf(w, "User %s updated sucessfully\n", username)
+}
 
 func Delete(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	if r.Method != "POST" {
@@ -73,4 +104,33 @@ func Delete(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	fmt.Fprintf(w, "User %s deleted sucessfully\n", username)
+}
+
+func Login(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	if r.Method != "POST" {
+		http.Error(w, http.StatusText(405), 405)
+		return
+	}
+
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+	if username == "" || password == "" {
+		http.Error(w, http.StatusText(400), 400)
+	}
+
+	user := new(User)
+	ifUserExist := ifExist(username, db)
+	err := ifUserExist.Scan(&user.username, &user.password)
+	if err == sql.ErrNoRows {
+		fmt.Fprintln(w, "User with this username does not exists")
+		return
+	}
+
+	loginResult := login(username, password, db)
+	if loginResult != 200 {
+		http.Error(w, http.StatusText(loginResult), loginResult)
+		return
+	}
+
+	fmt.Fprintf(w, "User %s logged sucessfully\n", username)
 }
