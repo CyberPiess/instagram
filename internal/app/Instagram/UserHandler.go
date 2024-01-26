@@ -21,10 +21,11 @@ func Create(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	password := r.FormValue("password")
 	if username == "" || password == "" {
 		http.Error(w, http.StatusText(400), 400)
+		return
 	}
 
 	user := new(User)
-	ifUserExist := ifExist(username, db)
+	ifUserExist := ifUserExist(username, db)
 	err := ifUserExist.Scan(&user.username, &user.password)
 	if err != sql.ErrNoRows {
 		fmt.Fprintln(w, "User with this username already exists")
@@ -32,7 +33,7 @@ func Create(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	//TODO: поменять отдельные поля на структуру?
-	createResult := create(username, password, db)
+	createResult := userCreate(username, password, db)
 	if createResult != 200 {
 		http.Error(w, http.StatusText(createResult), createResult)
 		return
@@ -55,22 +56,22 @@ func Update(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		http.Error(w, http.StatusText(400), 400)
 	}
 
-	ifUserExist := ifExist(username, db)
+	userExist := ifUserExist(username, db)
 	user := new(User)
-	err := ifUserExist.Scan(&user.username, &user.password)
+	err := userExist.Scan(&user.username, &user.password)
 	if err == sql.ErrNoRows {
 		fmt.Fprintln(w, "User with current username does not exists")
 		return
 	}
 
-	ifUserExist = ifExist(newUsername, db)
-	err = ifUserExist.Scan(newUsername)
+	userExist = ifUserExist(newUsername, db)
+	err = userExist.Scan(newUsername)
 	if err != sql.ErrNoRows {
 		fmt.Fprintln(w, "User with new username already exists")
 		return
 	}
 
-	updateResult := update(username, password, newUsername, newPassword, db)
+	updateResult := userUpdate(username, password, newUsername, newPassword, db)
 	if updateResult != 200 {
 		http.Error(w, http.StatusText(updateResult), updateResult)
 		return
@@ -90,14 +91,14 @@ func Delete(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		http.Error(w, http.StatusText(400), 400)
 	}
 
-	ifUserExist := ifExist(username, db)
+	ifUserExist := ifUserExist(username, db)
 	err := ifUserExist.Scan(username)
 	if err == sql.ErrNoRows {
 		fmt.Fprintln(w, "User with this username does not exists")
 		return
 	}
 
-	createResult := delete(username, db)
+	createResult := userDelete(username, db)
 	if createResult != 200 {
 		http.Error(w, http.StatusText(createResult), createResult)
 		return
@@ -106,10 +107,10 @@ func Delete(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	fmt.Fprintf(w, "User %s deleted sucessfully\n", username)
 }
 
-func Login(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+func Login(w http.ResponseWriter, r *http.Request, db *sql.DB) int {
 	if r.Method != "POST" {
 		http.Error(w, http.StatusText(405), 405)
-		return
+		return -1
 	}
 
 	username := r.FormValue("username")
@@ -119,18 +120,19 @@ func Login(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	user := new(User)
-	ifUserExist := ifExist(username, db)
+	ifUserExist := ifUserExist(username, db)
 	err := ifUserExist.Scan(&user.username, &user.password)
 	if err == sql.ErrNoRows {
 		fmt.Fprintln(w, "User with this username does not exists")
-		return
+		return -1
 	}
 
-	loginResult := login(username, password, db)
+	loginResult, userId := userLogin(username, password, db)
 	if loginResult != 200 {
 		http.Error(w, http.StatusText(loginResult), loginResult)
-		return
+		return -1
 	}
 
 	fmt.Fprintf(w, "User %s logged sucessfully\n", username)
+	return userId
 }

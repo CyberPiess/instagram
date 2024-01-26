@@ -4,12 +4,12 @@ import (
 	"database/sql"
 )
 
-func ifExist(username string, db *sql.DB) *sql.Row {
+func ifUserExist(username string, db *sql.DB) *sql.Row {
 	row := db.QueryRow("SELECT username, password FROM \"Users\" WHERE username = $1", username)
 	return row
 }
 
-func create(username string, password string, db *sql.DB) int {
+func userCreate(username string, password string, db *sql.DB) int {
 	_, err := db.Query("INSERT INTO \"Users\" (username, password) VALUES ($1, $2)", username, password)
 
 	if err != nil {
@@ -18,7 +18,7 @@ func create(username string, password string, db *sql.DB) int {
 	return 200
 }
 
-func delete(username string, db *sql.DB) int {
+func userDelete(username string, db *sql.DB) int {
 	_, err := db.Query("DELETE FROM \"Users\" WHERE username = $1", username)
 	if err != nil {
 		return 500
@@ -26,8 +26,8 @@ func delete(username string, db *sql.DB) int {
 	return 200
 }
 
-func update(username string, password string, newUsername string, newPassword string, db *sql.DB) int {
-	loginResult := login(username, password, db)
+func userUpdate(username string, password string, newUsername string, newPassword string, db *sql.DB) int {
+	loginResult, _ := userLogin(username, password, db)
 	if loginResult != 200 {
 		return 500
 	}
@@ -58,10 +58,19 @@ func update(username string, password string, newUsername string, newPassword st
 	return 200
 }
 
-func login(username string, password string, db *sql.DB) int {
-	_, err := db.Query("SELECT username, password FROM \"Users\" WHERE username = $1 and password=$2", username, password)
+func userLogin(username string, password string, db *sql.DB) (int, int) {
+	result, err := db.Query("SELECT user_id FROM \"Users\" WHERE username = $1 and password=$2", username, password)
 	if err != nil {
-		return 500
+		return 500, -1
 	}
-	return 200
+
+	var user_id int
+	for result.Next() {
+		err = result.Scan(&user_id)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	return 200, user_id
 }
