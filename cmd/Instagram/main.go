@@ -4,7 +4,9 @@ import (
 	"log"
 	"net/http"
 
-	instagram "github.com/CyberPiess/Instagram-2.0/internal/app/Instagram"
+	database "github.com/CyberPiess/instagram/internal/app/instagram/database"
+	posts "github.com/CyberPiess/instagram/internal/app/instagram/posts"
+	user "github.com/CyberPiess/instagram/internal/app/instagram/user"
 
 	_ "github.com/lib/pq"
 )
@@ -13,34 +15,34 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	db, err := instagram.OpenDB()
+	db, err := database.OpenDB()
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
 
 	mux.HandleFunc("/createUser", func(w http.ResponseWriter, r *http.Request) {
-		instagram.Create(w, r, db)
+		user.Create(w, r, db)
 	})
 
 	mux.HandleFunc("/deleteUser", func(w http.ResponseWriter, r *http.Request) {
-		instagram.Delete(w, r, db)
+		user.Delete(w, r, db)
 	})
 
 	mux.HandleFunc("/logUser", func(w http.ResponseWriter, r *http.Request) {
-		instagram.Login(w, r, db)
+		user.Login(w, r, db)
 	})
 
 	mux.HandleFunc("/updateUser", func(w http.ResponseWriter, r *http.Request) {
-		instagram.Update(w, r, db)
+		user.Update(w, r, db)
 	})
 
 	mux.HandleFunc("/createPost", func(w http.ResponseWriter, r *http.Request) {
-		instagram.PostCreate(w, r, db)
+		posts.PostCreate(w, r, db)
 	})
 
 	mux.HandleFunc("/getPost", func(w http.ResponseWriter, r *http.Request) {
-		instagram.PostGet(w, r, db)
+		posts.PostGet(w, r, db)
 	})
 
 	log.Println("Запуск веб-сервера на http://localhost:8080")

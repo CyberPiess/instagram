@@ -2,20 +2,19 @@ package instagram
 
 import (
 	"database/sql"
+	"time"
 )
 
-func ifUserExist(username string, db *sql.DB) *sql.Row {
-	row := db.QueryRow("SELECT username, password FROM \"Users\" WHERE username = $1", username)
-	return row
+func ifUserExist(username string, db *sql.DB) bool {
+	row := db.QueryRow("SELECT username FROM users WHERE username = $1", username)
+	err := row.Scan(username)
+	return err != sql.ErrNoRows
 }
 
-func userCreate(username string, password string, db *sql.DB) int {
-	_, err := db.Query("INSERT INTO \"Users\" (username, password) VALUES ($1, $2)", username, password)
+func userCreate(username string, user_email string, hashed_password string, create_time time.Time, db *sql.DB) bool {
+	_, err := db.Query("INSERT INTO Users (username, user_email, hashed_password, create_time) VALUES ($1, $2, $3, $4)", username, user_email, hashed_password, create_time)
 
-	if err != nil {
-		return 500
-	}
-	return 200
+	return err == nil
 }
 
 func userDelete(username string, db *sql.DB) int {
@@ -27,8 +26,8 @@ func userDelete(username string, db *sql.DB) int {
 }
 
 func userUpdate(username string, password string, newUsername string, newPassword string, db *sql.DB) int {
-	loginResult, _ := userLogin(username, password, db)
-	if loginResult != 200 {
+	login_result, _ := userLogin(username, password, db)
+	if login_result != 200 {
 		return 500
 	}
 

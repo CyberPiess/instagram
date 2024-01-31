@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 type User struct {
@@ -19,23 +20,24 @@ func Create(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-	if username == "" || password == "" {
+	user_email := r.FormValue("user_email")
+	create_time := time.Now()
+	if username == "" || password == "" || user_email == "" {
 		http.Error(w, http.StatusText(400), 400)
 		return
 	}
 
-	user := new(User)
-	ifUserExist := ifUserExist(username, db)
-	err := ifUserExist.Scan(&user.username, &user.password)
-	if err != sql.ErrNoRows {
+	//TODO: добавить проверку email
+	if_user_exist := ifUserExist(username, db)
+	if if_user_exist {
 		fmt.Fprintln(w, "User with this username already exists")
 		return
 	}
 
-	//TODO: поменять отдельные поля на структуру?
-	createResult := userCreate(username, password, db)
-	if createResult != 200 {
-		http.Error(w, http.StatusText(createResult), createResult)
+	hashed_password := hashAndSalt([]byte(password))
+	create_result := userCreate(username, user_email, hashed_password, create_time, db)
+	if !create_result {
+		http.Error(w, http.StatusText(500), 500)
 		return
 	}
 
@@ -50,30 +52,28 @@ func Update(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-	newUsername := r.FormValue("newUsername")
-	newPassword := r.FormValue("newPassword")
+	new_username := r.FormValue("new_username")
+	new_password := r.FormValue("new_password")
 	if username == "" || password == "" {
 		http.Error(w, http.StatusText(400), 400)
 	}
 
-	userExist := ifUserExist(username, db)
-	user := new(User)
-	err := userExist.Scan(&user.username, &user.password)
-	if err == sql.ErrNoRows {
+	user_exist := ifUserExist(username, db)
+	if !user_exist {
 		fmt.Fprintln(w, "User with current username does not exists")
 		return
 	}
 
-	userExist = ifUserExist(newUsername, db)
-	err = userExist.Scan(newUsername)
-	if err != sql.ErrNoRows {
+	user_exist = ifUserExist(new_username, db)
+	if user_exist {
 		fmt.Fprintln(w, "User with new username already exists")
 		return
 	}
 
-	updateResult := userUpdate(username, password, newUsername, newPassword, db)
-	if updateResult != 200 {
-		http.Error(w, http.StatusText(updateResult), updateResult)
+	hashed_new_password := hashAndSalt([]byte(new_password))
+	update_result := userUpdate(username, password, new_username, hashed_new_password, db)
+	if update_result != 200 {
+		http.Error(w, http.StatusText(update_result), update_result)
 		return
 	}
 
@@ -91,16 +91,15 @@ func Delete(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		http.Error(w, http.StatusText(400), 400)
 	}
 
-	ifUserExist := ifUserExist(username, db)
-	err := ifUserExist.Scan(username)
-	if err == sql.ErrNoRows {
+	if_user_exist := ifUserExist(username, db)
+	if !if_user_exist {
 		fmt.Fprintln(w, "User with this username does not exists")
 		return
 	}
 
-	createResult := userDelete(username, db)
-	if createResult != 200 {
-		http.Error(w, http.StatusText(createResult), createResult)
+	create_result := userDelete(username, db)
+	if create_result != 200 {
+		http.Error(w, http.StatusText(create_result), create_result)
 		return
 	}
 
@@ -119,20 +118,18 @@ func Login(w http.ResponseWriter, r *http.Request, db *sql.DB) int {
 		http.Error(w, http.StatusText(400), 400)
 	}
 
-	user := new(User)
-	ifUserExist := ifUserExist(username, db)
-	err := ifUserExist.Scan(&user.username, &user.password)
-	if err == sql.ErrNoRows {
+	if_user_exist := ifUserExist(username, db)
+	if !if_user_exist {
 		fmt.Fprintln(w, "User with this username does not exists")
 		return -1
 	}
 
-	loginResult, userId := userLogin(username, password, db)
-	if loginResult != 200 {
-		http.Error(w, http.StatusText(loginResult), loginResult)
+	login_result, user_id := userLogin(username, password, db)
+	if login_result != 200 {
+		http.Error(w, http.StatusText(login_result), login_result)
 		return -1
 	}
 
 	fmt.Fprintf(w, "User %s logged sucessfully\n", username)
-	return userId
+	return user_id
 }
