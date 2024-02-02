@@ -2,17 +2,42 @@ package instagram
 
 import (
 	"database/sql"
-	"time"
+
+	sq "github.com/Masterminds/squirrel"
 )
 
-func ifUserExist(username string, db *sql.DB) bool {
-	row := db.QueryRow("SELECT username FROM users WHERE username = $1", username)
-	err := row.Scan(username)
-	return err != sql.ErrNoRows
+func ifUserExist(username string, db *sql.DB) error {
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+
+	query, args, err := psql.Select("username").From("users").Where("username = ?", username).ToSql()
+	if err != nil {
+		return err
+	}
+	row := db.QueryRow(query, args...)
+	err = row.Scan(&username)
+	return err
 }
 
-func userCreate(username string, user_email string, hashed_password string, create_time time.Time, db *sql.DB) bool {
-	_, err := db.Query("INSERT INTO Users (username, user_email, hashed_password, create_time) VALUES ($1, $2, $3, $4)", username, user_email, hashed_password, create_time)
+func ifEmailExist(user_email string, db *sql.DB) error {
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+
+	query, args, err := psql.Select("user_email").From("users").Where("username = ?", user_email).ToSql()
+	if err != nil {
+		return err
+	}
+	row := db.QueryRow(query, args...)
+	err = row.Scan(&user_email)
+	return err
+}
+
+func userCreate(new_user User, db *sql.DB) bool {
+
+	query := sq.Insert("users").
+		Columns("username", "user_email", "hashed_password", "create_time").
+		Values(new_user.username, new_user.user_email, new_user.hashed_password, new_user.create_time).
+		RunWith(db).
+		PlaceholderFormat(sq.Dollar)
+	_, err := query.Query()
 
 	return err == nil
 }

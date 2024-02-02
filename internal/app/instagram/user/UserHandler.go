@@ -8,34 +8,51 @@ import (
 )
 
 type User struct {
-	username string
-	password string
+	username        string
+	user_email      string
+	hashed_password string
+	create_time     time.Time
 }
 
 func Create(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	if r.Method != "POST" {
-		http.Error(w, http.StatusText(405), 405)
+		http.Error(w, http.StatusText(400), 400)
 		return
 	}
 
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 	user_email := r.FormValue("user_email")
-	create_time := time.Now()
 	if username == "" || password == "" || user_email == "" {
 		http.Error(w, http.StatusText(400), 400)
 		return
 	}
 
-	//TODO: добавить проверку email
 	if_user_exist := ifUserExist(username, db)
-	if if_user_exist {
+	if_email_exist := ifEmailExist(user_email, db)
+	switch {
+	case if_user_exist != nil && if_user_exist != sql.ErrNoRows:
+		fmt.Fprintln(w, "Bad request")
+		return
+	case if_user_exist == nil:
 		fmt.Fprintln(w, "User with this username already exists")
+		return
+	case if_email_exist != nil && if_email_exist != sql.ErrNoRows:
+		fmt.Fprintln(w, "Bad request")
+		return
+	case if_email_exist == nil:
+		fmt.Fprintln(w, "User with this email already exists")
 		return
 	}
 
 	hashed_password := hashAndSalt([]byte(password))
-	create_result := userCreate(username, user_email, hashed_password, create_time, db)
+	new_user := User{
+		username:        username,
+		user_email:      user_email,
+		hashed_password: hashed_password,
+		create_time:     time.Now(),
+	}
+	create_result := userCreate(new_user, db)
 	if !create_result {
 		http.Error(w, http.StatusText(500), 500)
 		return
@@ -46,7 +63,7 @@ func Create(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 func Update(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	if r.Method != "POST" {
-		http.Error(w, http.StatusText(405), 405)
+		http.Error(w, http.StatusText(400), 400)
 		return
 	}
 
@@ -59,13 +76,13 @@ func Update(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	user_exist := ifUserExist(username, db)
-	if !user_exist {
+	if user_exist != nil {
 		fmt.Fprintln(w, "User with current username does not exists")
 		return
 	}
 
 	user_exist = ifUserExist(new_username, db)
-	if user_exist {
+	if user_exist != nil {
 		fmt.Fprintln(w, "User with new username already exists")
 		return
 	}
@@ -82,7 +99,7 @@ func Update(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 func Delete(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	if r.Method != "POST" {
-		http.Error(w, http.StatusText(405), 405)
+		http.Error(w, http.StatusText(400), 400)
 		return
 	}
 
@@ -92,7 +109,7 @@ func Delete(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	if_user_exist := ifUserExist(username, db)
-	if !if_user_exist {
+	if if_user_exist != nil {
 		fmt.Fprintln(w, "User with this username does not exists")
 		return
 	}
@@ -108,7 +125,7 @@ func Delete(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 func Login(w http.ResponseWriter, r *http.Request, db *sql.DB) int {
 	if r.Method != "POST" {
-		http.Error(w, http.StatusText(405), 405)
+		http.Error(w, http.StatusText(400), 400)
 		return -1
 	}
 
@@ -119,7 +136,7 @@ func Login(w http.ResponseWriter, r *http.Request, db *sql.DB) int {
 	}
 
 	if_user_exist := ifUserExist(username, db)
-	if !if_user_exist {
+	if if_user_exist != nil {
 		fmt.Fprintln(w, "User with this username does not exists")
 		return -1
 	}
