@@ -1,4 +1,4 @@
-package instagram
+package user
 
 import (
 	"log"

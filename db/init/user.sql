@@ -1,4 +1,4 @@
-create table public.Users
+create table public.user
 (
 	user_id SERIAL PRIMARY KEY,
 	username varchar(32) UNIQUE NOT NULL,

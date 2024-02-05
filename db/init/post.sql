@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS public."Posts"
+CREATE TABLE IF NOT EXISTS public.post
 (
     "postId" integer NOT NULL DEFAULT nextval('"Posts_postId_seq"'::regclass),
     "postImage" character varying(200) COLLATE pg_catalog."default" NOT NULL,

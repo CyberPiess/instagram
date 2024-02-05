@@ -4,9 +4,9 @@ import (
 	"log"
 	"net/http"
 
-	database "github.com/CyberPiess/instagram/internal/app/instagram/database"
-	posts "github.com/CyberPiess/instagram/internal/app/instagram/posts"
-	user "github.com/CyberPiess/instagram/internal/app/instagram/user"
+	app "github.com/CyberPiess/instagram/internal/app/instagram/application"
+	user "github.com/CyberPiess/instagram/internal/app/instagram/domain/user"
+	database "github.com/CyberPiess/instagram/internal/app/instagram/infrastructure/database"
 
 	_ "github.com/lib/pq"
 )
@@ -22,27 +22,7 @@ func main() {
 	defer db.Close()
 
 	mux.HandleFunc("/createUser", func(w http.ResponseWriter, r *http.Request) {
-		user.Create(w, r, db)
-	})
-
-	mux.HandleFunc("/deleteUser", func(w http.ResponseWriter, r *http.Request) {
-		user.Delete(w, r, db)
-	})
-
-	mux.HandleFunc("/logUser", func(w http.ResponseWriter, r *http.Request) {
-		user.Login(w, r, db)
-	})
-
-	mux.HandleFunc("/updateUser", func(w http.ResponseWriter, r *http.Request) {
-		user.Update(w, r, db)
-	})
-
-	mux.HandleFunc("/createPost", func(w http.ResponseWriter, r *http.Request) {
-		posts.PostCreate(w, r, db)
-	})
-
-	mux.HandleFunc("/getPost", func(w http.ResponseWriter, r *http.Request) {
-		posts.PostGet(w, r, db)
+		app.UserHandler.Create(&user.User{}, w, r, db)
 	})
 
 	log.Println("Запуск веб-сервера на http://localhost:8080")
