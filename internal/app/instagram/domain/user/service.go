@@ -1,9 +1,13 @@
 package user
 
-import storage "github.com/CyberPiess/instagram/internal/app/instagram/infrastructure/user"
+import (
+	"github.com/CyberPiess/instagram/internal/app/instagram/infrastructure/database"
+)
 
-type Repository interface {
-	Create(new_user *storage.User) error
-	ifUsernameExist(username string) error
-	ifUserEmailExist(user_email string) error
+type AuthService struct {
+	repository database.Authorization
+}
+
+func NewAuthService(repository database.Authorization) *AuthService {
+	return &AuthService{repository: repository}
 }
