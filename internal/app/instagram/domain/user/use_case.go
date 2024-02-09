@@ -1,32 +1,31 @@
 package user
 
 import (
-	"database/sql"
-	"net/http"
+	_ "database/sql"
+	"time"
 
-	"github.com/CyberPiess/instagram/internal/app/instagram/infrastructure/user"
+	"github.com/google/uuid"
+
+	storage "github.com/CyberPiess/instagram/internal/app/instagram/infrastructure/user"
 )
 
-func (u *User) Create(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-	if r.Method != "POST" {
-		http.Error(w, http.StatusText(400), 400)
-		return
+func Create(new_user User) error {
+
+	if new_user.Username == "" || new_user.User_email == "" || new_user.Password == "" {
+		return nil
 	}
 
-	username := r.FormValue("username")
-	password := r.FormValue("password")
-	user_email := r.FormValue("user_email")
-	if username == "" || password == "" || user_email == "" {
-		http.Error(w, http.StatusText(400), 400)
-		return
+	hashed_password := hashAndSalt([]byte(new_user.Password))
+
+	db_user := &storage.User{
+		Id:              uuid.New(),
+		Username:        new_user.Username,
+		User_email:      new_user.User_email,
+		Hashed_password: hashed_password,
+		Create_time:     time.Now(),
 	}
 
-	//для обращения к функциям в пакете storage.go делаю импорт: "github.com/CyberPiess/instagram/internal/app/instagram/infrastructure/user"
-	//но суть в том, что в пакете есть функция Create, которая в качестве одного из аргументов принимает структуру User
-	//соответственно в storage.go осуществляется импорт текущего пакета
-	//так я получаю цикл
-	//я понимаю, почему я получаю цикл, как его исправить?
-	user_repository := &user.UserRepository{}
-	if_user_exist := user_repository.IfUsernameExist(username, db)
-	print(if_user_exist)
+	user_reposityory := &storage.UserRepository{}
+	err := user_reposityory.Create(db_user)
+	return err
 }

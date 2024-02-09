@@ -1,11 +1,9 @@
 package user
 
-import (
-	"database/sql"
-)
+import storage "github.com/CyberPiess/instagram/internal/app/instagram/infrastructure/user"
 
 type Repository interface {
-	Create(user *User, db *sql.DB) error
-	IfUsernameExist(username string, db *sql.DB) error
-	IfEmailExist(user_email string, db *sql.DB) error
+	Create(new_user *storage.User) error
+	ifUsernameExist(username string) error
+	ifUserEmailExist(user_email string) error
 }

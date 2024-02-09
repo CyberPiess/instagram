@@ -1,17 +1,25 @@
 package user
 
 import (
-	"database/sql"
+	"time"
 
-	"github.com/CyberPiess/instagram/internal/app/instagram/domain/user"
+	"github.com/google/uuid"
 
 	sq "github.com/Masterminds/squirrel"
 )
 
+type User struct {
+	Id              uuid.UUID
+	Username        string
+	User_email      string
+	Hashed_password string
+	Create_time     time.Time
+}
+
 type UserRepository struct {
 }
 
-func (ur *UserRepository) IfUsernameExist(username string, db *sql.DB) error {
+func (ur *UserRepository) ifUsernameExist(username string) error {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	query, args, err := psql.Select("username").From("users").Where("username = ?", username).ToSql()
@@ -23,7 +31,7 @@ func (ur *UserRepository) IfUsernameExist(username string, db *sql.DB) error {
 	return err
 }
 
-func (ur *UserRepository) IfEmailExist(user_email string, db *sql.DB) error {
+func (ur *UserRepository) ifEmailExist(user_email string) error {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	query, args, err := psql.Select("user_email").From("users").Where("username = ?", user_email).ToSql()
@@ -35,11 +43,11 @@ func (ur *UserRepository) IfEmailExist(user_email string, db *sql.DB) error {
 	return err
 }
 
-func (ur *UserRepository) Create(user user.User, db *sql.DB) error {
+func (ur *UserRepository) Create(new_user *User) error {
 
 	query := sq.Insert("users").
 		Columns("username", "user_email", "hashed_password", "create_time").
-		Values(user.Username, user.User_email, user.Hashed_password, user.Create_time).
+		Values(new_user.Username, new_user.User_email, new_user.Hashed_password, new_user.Create_time).
 		RunWith(db).
 		PlaceholderFormat(sq.Dollar)
 	_, err := query.Query()

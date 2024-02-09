@@ -8,7 +8,6 @@ import (
 
 var db *sql.DB
 
-// OpenDB открывает соединение с базой данных и возвращает объект *sql.DB
 func OpenDB() (*sql.DB, error) {
 	if db != nil {
 		return db, nil
