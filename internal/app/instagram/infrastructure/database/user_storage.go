@@ -1,24 +1,26 @@
 package database
 
 import (
-	"time"
+	"database/sql"
 
+	"github.com/CyberPiess/instagram/internal/app/instagram/domain/user"
 	sq "github.com/Masterminds/squirrel"
 )
 
 type UserRepository struct {
-	Username    string
-	User_email  string
-	Password    string
-	Create_time time.Time
+	db *sql.DB
 }
 
-func (ur *UserRepository) Insert(env *Env) error {
+func NewUserRepository(db *sql.DB) *UserRepository {
+	return &UserRepository{db: db}
+}
+
+func (ur *UserRepository) Insert(newUser user.User) error {
 
 	query := sq.Insert("user_table").
 		Columns("username", "user_email", "hashed_password", "create_time").
-		Values(ur.Username, ur.User_email, ur.Password, ur.Create_time).
-		RunWith(env.db).
+		Values(newUser.Username, newUser.User_email, newUser.Password, newUser.Create_time).
+		RunWith(ur.db).
 		PlaceholderFormat(sq.Dollar)
 	_, err := query.Query()
 

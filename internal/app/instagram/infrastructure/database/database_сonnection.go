@@ -16,11 +16,7 @@ type Config struct {
 	SSLMode  string
 }
 
-type Env struct {
-	db *sql.DB
-}
-
-func NewPostgresDb(cfg Config) (*Env, error) {
+func NewPostgresDb(cfg Config) (*sql.DB, error) {
 	db, err := sql.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
 		cfg.Host, cfg.Port, cfg.Username, cfg.DBName, cfg.Password, cfg.SSLMode))
 	if err != nil {
@@ -30,7 +26,5 @@ func NewPostgresDb(cfg Config) (*Env, error) {
 		return nil, err
 	}
 
-	env := &Env{db: db}
-
-	return env, nil
+	return db, nil
 }
