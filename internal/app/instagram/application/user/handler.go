@@ -79,6 +79,7 @@ func (u *User) UserLogin() http.HandlerFunc {
 			Name:   "jwt",
 			Value:  logedUser.AccessToken,
 			MaxAge: 3600,
+			Path:   "/",
 
 			Secure:   false,
 			HttpOnly: true,
@@ -90,10 +91,15 @@ func (u *User) UserLogin() http.HandlerFunc {
 
 func (u *User) UserLogout() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			http.Error(w, http.StatusText(400), 400)
+			return
+		}
 		http.SetCookie(w, &http.Cookie{
 			Name:   "jwt",
 			Value:  "",
 			MaxAge: 3600,
+			Path:   "/",
 
 			Secure:   false,
 			HttpOnly: true,

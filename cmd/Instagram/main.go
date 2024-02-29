@@ -24,7 +24,7 @@ func main() {
 	db, err := database.NewPostgresDb(database.Config{
 		Host:     "localhost",
 		Port:     "5432",
-		Username: "admin",
+		Username: "postgres",
 		DBName:   "Instagram",
 		SSLMode:  "disable",
 		Password: "password",
