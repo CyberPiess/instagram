@@ -8,6 +8,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+//go:generate mockgen -source=service.go -destination=mocks/mock.go
+
 const (
 	secretKey = "secret"
 )
@@ -29,13 +31,9 @@ func NewUserService(storage userStorage) *UserService {
 
 func (u *UserService) CreateUser(newUser User) error {
 
-	switch {
-	case newUser.Username == "":
-		return fmt.Errorf("invalid input: empty username")
-	case newUser.UserEmail == "":
-		return fmt.Errorf("invalid input: empty email")
-	case newUser.Password == "":
-		return fmt.Errorf("invalid input: empty password")
+	err := u.VerifyData(newUser)
+	if err != nil {
+		return err
 	}
 
 	newUser.Password = hashAndSalt([]byte(newUser.Password))
@@ -98,4 +96,16 @@ func (u *UserService) VerifyToken(tokenString string) (*MyJWTClaims, error) {
 	}
 
 	return &jwtClaims, nil
+}
+
+func (u *UserService) VerifyData(newUser User) error {
+	switch {
+	case newUser.Username == "":
+		return fmt.Errorf("invalid input: empty username")
+	case newUser.UserEmail == "":
+		return fmt.Errorf("invalid input: empty email")
+	case newUser.Password == "":
+		return fmt.Errorf("invalid input: empty password")
+	}
+	return nil
 }

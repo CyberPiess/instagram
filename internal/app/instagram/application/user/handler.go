@@ -7,9 +7,12 @@ import (
 	"github.com/CyberPiess/instagram/internal/app/instagram/domain/user"
 )
 
+//go:generate mockgen -source=handler.go -destination=mocks/mock.go
 type userService interface {
 	CreateUser(newUser user.User) error
 	LoginUser(logUser *user.LoginUserReq) (*user.LoginUserRes, error)
+	VerifyToken(tokenString string) (*user.MyJWTClaims, error)
+	VerifyData(newUser user.User) error
 }
 
 type User struct {
@@ -82,5 +85,18 @@ func (u *User) UserLogin() http.HandlerFunc {
 		})
 
 		w.Write([]byte("User logged in!"))
+	}
+}
+
+func (u *User) UserLogout() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		http.SetCookie(w, &http.Cookie{
+			Name:   "jwt",
+			Value:  "",
+			MaxAge: 3600,
+
+			Secure:   false,
+			HttpOnly: true,
+		})
 	}
 }

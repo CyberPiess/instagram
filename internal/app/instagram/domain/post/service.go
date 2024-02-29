@@ -7,12 +7,14 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+//go:generate mockgen -source=service.go -destination=mocks/mock.go
+
 const (
 	secretKey = "secret"
 )
 
 type postStorage interface {
-	Create(CreatePOst CreatePostReq) error
+	Create(CreatePOst CreatePost) error
 }
 
 type PostService struct {
@@ -33,7 +35,7 @@ func (p *PostService) CreatePost(newPost Post) error {
 		return err
 	}
 
-	postCreate := CreatePostReq{
+	postCreate := CreatePost{
 		PostImage:       newPost.PostImage,
 		PostDescription: newPost.PostDescription,
 		CreateTime:      newPost.CreateTime,
@@ -42,18 +44,18 @@ func (p *PostService) CreatePost(newPost Post) error {
 	return p.store.Create(postCreate)
 }
 
-func (p *PostService) VerifyToken(tokenString string) (*MyJWTClaims, error) {
-	var jwtClaims MyJWTClaims
+func (p *PostService) VerifyToken(tokenString string) (*Credentials, error) {
+	var jwtClaims Credentials
 	token, err := jwt.ParseWithClaims(tokenString, &jwtClaims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(secretKey), nil
 	})
 
 	if err != nil {
-		return &MyJWTClaims{}, err
+		return &Credentials{}, err
 	}
 
 	if !token.Valid {
-		return &MyJWTClaims{}, fmt.Errorf("invalid token")
+		return &Credentials{}, fmt.Errorf("invalid token")
 	}
 
 	return &jwtClaims, nil

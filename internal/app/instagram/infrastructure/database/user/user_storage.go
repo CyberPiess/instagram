@@ -7,6 +7,8 @@ import (
 	sq "github.com/Masterminds/squirrel"
 )
 
+//go:generate mockgen -source=user_storage.go -destination=mocks/mock_storage.go
+
 type UserRepository struct {
 	db *sql.DB
 }

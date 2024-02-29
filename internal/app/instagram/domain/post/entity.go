@@ -14,14 +14,14 @@ type Post struct {
 	AccessToken     string
 }
 
-type CreatePostReq struct {
+type CreatePost struct {
 	PostImage       string
 	PostDescription string
 	CreateTime      time.Time
 	UserId          int
 }
 
-type MyJWTClaims struct {
+type Credentials struct {
 	UserId string
 	jwt.RegisteredClaims
 }

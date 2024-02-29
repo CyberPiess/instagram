@@ -10,7 +10,7 @@ import (
 
 type postService interface {
 	CreatePost(newPost post.Post) error
-	VerifyToken(tokenString string) (*post.MyJWTClaims, error)
+	VerifyToken(tokenString string) (*post.Credentials, error)
 }
 
 type Post struct {

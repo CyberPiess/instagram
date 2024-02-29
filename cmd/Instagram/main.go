@@ -45,6 +45,7 @@ func main() {
 
 	mux.HandleFunc("/createUser", userHandler.UserCreate())
 	mux.HandleFunc("/loginUser", userHandler.UserLogin())
+	mux.HandleFunc("/logoutUser", userHandler.UserLogout())
 	mux.HandleFunc("/createPost", postHandler.PostCreate())
 
 	log.Println("Запуск веб-сервера на http://localhost:8080")
