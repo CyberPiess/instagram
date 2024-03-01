@@ -1,19 +1,24 @@
-package instagram
+package database
 
 import (
 	"database/sql"
+	"fmt"
 
 	_ "github.com/lib/pq"
 )
 
-var db *sql.DB
+type Config struct {
+	Host     string
+	Port     string
+	Username string
+	DBName   string
+	Password string
+	SSLMode  string
+}
 
-func OpenDB() (*sql.DB, error) {
-	if db != nil {
-		return db, nil
-	}
-
-	db, err := sql.Open("postgres", "host=localhost port=5432 user=admin password=password dbname=Instagram sslmode=disable")
+func NewPostgresDb(cfg Config) (*sql.DB, error) {
+	db, err := sql.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
+		cfg.Host, cfg.Port, cfg.Username, cfg.DBName, cfg.Password, cfg.SSLMode))
 	if err != nil {
 		return nil, err
 	}
