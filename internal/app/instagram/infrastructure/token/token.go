@@ -2,6 +2,8 @@ package token
 
 import (
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -37,4 +39,21 @@ func (t *token) VerifyToken(tokenString string) (*Credentials, error) {
 	}
 
 	return &jwtClaims, nil
+}
+
+func (t *token) CreateToken(userId int) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Credentials{
+		UserId: strconv.Itoa(userId),
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    strconv.Itoa(userId),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+		},
+	})
+
+	ss, err := token.SignedString([]byte(secretKey))
+	if err != nil {
+		return "", err
+	}
+
+	return ss, nil
 }

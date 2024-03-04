@@ -16,6 +16,7 @@ type postStorage interface {
 
 type tokenInteraction interface {
 	VerifyToken(tokenString string) (*token.Credentials, error)
+	CreateToken(userId int) (string, error)
 }
 
 type PostService struct {

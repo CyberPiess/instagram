@@ -19,7 +19,8 @@ func TestCreateUser(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUserStorage := u.NewMockuserStorage(ctrl)
-	userService := NewUserService(mockUserStorage)
+	mockTokenInteraction := u.NewMocktokenInteraction(ctrl)
+	userService := NewUserService(mockUserStorage, mockTokenInteraction)
 
 	mockUserStorage.EXPECT().IfUserExist(gomock.Any()).Return(false, nil).AnyTimes()
 	mockUserStorage.EXPECT().IfEmailExist(gomock.Any()).Return(false, nil).AnyTimes()
@@ -57,8 +58,10 @@ func TestLoginUser(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUserStorage := u.NewMockuserStorage(ctrl)
-	userService := NewUserService(mockUserStorage)
+	mockTokenInteraction := u.NewMocktokenInteraction(ctrl)
+	userService := NewUserService(mockUserStorage, mockTokenInteraction)
 
+	mockTokenInteraction.EXPECT().CreateToken(gomock.Any()).Return("someToken", nil).AnyTimes()
 	mockUserStorage.EXPECT().SelectUser(gomock.Any()).Return(1, "$2a$04$daDkOqpORBtgVFjFFcmBj.BzVq9lFz7J932T3dTdU0RGCjvhQSmNy", nil).AnyTimes()
 
 	tests := []struct {
@@ -93,7 +96,8 @@ func TestVerifyDate(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUserStorage := u.NewMockuserStorage(ctrl)
-	userServie := NewUserService(mockUserStorage)
+	mockTokenInteraction := u.NewMocktokenInteraction(ctrl)
+	userService := NewUserService(mockUserStorage, mockTokenInteraction)
 
 	tests := []struct {
 		name string
@@ -138,7 +142,7 @@ func TestVerifyDate(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		err := userServie.VerifyData(tt.args.user)
+		err := userService.VerifyData(tt.args.user)
 		assert.Equal(t, tt.want, err)
 	}
 

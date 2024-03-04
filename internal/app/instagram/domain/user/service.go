@@ -3,17 +3,12 @@ package user
 import (
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/CyberPiess/instagram/internal/app/instagram/infrastructure/database/user"
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/CyberPiess/instagram/internal/app/instagram/infrastructure/token"
 )
 
 //go:generate mockgen -source=service.go -destination=mocks/mock.go
-
-const (
-	secretKey = "secret"
-)
 
 type userStorage interface {
 	Insert(newUser user.UserDAO) error
@@ -22,12 +17,19 @@ type userStorage interface {
 	SelectUser(username string) (int, string, error)
 }
 
-type UserService struct {
-	store userStorage
+type tokenInteraction interface {
+	VerifyToken(tokenString string) (*token.Credentials, error)
+	CreateToken(userId int) (string, error)
 }
 
-func NewUserService(storage userStorage) *UserService {
-	return &UserService{store: storage}
+type UserService struct {
+	store userStorage
+	token tokenInteraction
+}
+
+func NewUserService(storage userStorage, token tokenInteraction) *UserService {
+	return &UserService{store: storage,
+		token: token}
 }
 
 func (u *UserService) CreateUser(newUser User) error {
@@ -71,20 +73,9 @@ func (u *UserService) LoginUser(req *LoginUserReq) (*LoginUserRes, error) {
 		return &LoginUserRes{}, fmt.Errorf("incorrect username or password")
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, MyJWTClaims{
-		UserId: strconv.Itoa(userId),
-		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    strconv.Itoa(userId),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
-		},
-	})
+	token, err := u.token.CreateToken(userId)
 
-	ss, err := token.SignedString([]byte(secretKey))
-	if err != nil {
-		return &LoginUserRes{}, err
-	}
-
-	return &LoginUserRes{AccessToken: ss, Username: req.Username, UserId: strconv.Itoa(userId)}, err
+	return &LoginUserRes{AccessToken: token, Username: req.Username, UserId: strconv.Itoa(userId)}, err
 }
 
 func (u *UserService) VerifyData(newUser User) error {

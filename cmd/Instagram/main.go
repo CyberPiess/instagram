@@ -39,7 +39,7 @@ func main() {
 	postStorage := postRepo.NewPostRepository(db)
 	tokenInteraction := token.NewToken()
 
-	userService := domainUser.NewUserService(userStorage)
+	userService := domainUser.NewUserService(userStorage, tokenInteraction)
 	postService := domainPost.NewPostService(postStorage, tokenInteraction)
 
 	userHandler := appUser.NewUserHandler(userService)
