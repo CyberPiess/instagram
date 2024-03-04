@@ -1,9 +1,8 @@
-package database
+package user
 
 import (
 	"database/sql"
 
-	"github.com/CyberPiess/instagram/internal/app/instagram/domain/user"
 	sq "github.com/Masterminds/squirrel"
 )
 
@@ -17,7 +16,7 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (ur *UserRepository) Insert(newUser user.User) error {
+func (ur *UserRepository) Insert(newUser UserDAO) error {
 
 	query := sq.Insert("public.user").
 		Columns("username", "user_email", "hashed_password", "create_time").
@@ -29,7 +28,7 @@ func (ur *UserRepository) Insert(newUser user.User) error {
 	return err
 }
 
-func (ur *UserRepository) IfUserExist(newUser user.User) (bool, error) {
+func (ur *UserRepository) IfUserExist(newUser UserDAO) (bool, error) {
 	var exists bool
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
@@ -44,7 +43,7 @@ func (ur *UserRepository) IfUserExist(newUser user.User) (bool, error) {
 	return exists, err
 }
 
-func (ur *UserRepository) IfEmailExist(newUser user.User) (bool, error) {
+func (ur *UserRepository) IfEmailExist(newUser UserDAO) (bool, error) {
 	var exists bool
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 

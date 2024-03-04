@@ -2,8 +2,6 @@ package post
 
 import (
 	"time"
-
-	"github.com/golang-jwt/jwt/v5"
 )
 
 type Post struct {
@@ -12,16 +10,4 @@ type Post struct {
 	CreateTime      time.Time
 	UserId          int
 	AccessToken     string
-}
-
-type CreatePost struct {
-	PostImage       string
-	PostDescription string
-	CreateTime      time.Time
-	UserId          int
-}
-
-type Credentials struct {
-	UserId string
-	jwt.RegisteredClaims
 }

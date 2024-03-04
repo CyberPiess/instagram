@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/CyberPiess/instagram/internal/app/instagram/infrastructure/database/user"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -15,9 +16,9 @@ const (
 )
 
 type userStorage interface {
-	Insert(newUser User) error
-	IfUserExist(newUser User) (bool, error)
-	IfEmailExist(newUSer User) (bool, error)
+	Insert(newUser user.UserDAO) error
+	IfUserExist(newUser user.UserDAO) (bool, error)
+	IfEmailExist(newUSer user.UserDAO) (bool, error)
 	SelectUser(username string) (int, string, error)
 }
 
@@ -36,23 +37,28 @@ func (u *UserService) CreateUser(newUser User) error {
 		return err
 	}
 
-	newUser.Password = hashAndSalt([]byte(newUser.Password))
+	userDAO := user.UserDAO{
+		Username:   newUser.Username,
+		UserEmail:  newUser.UserEmail,
+		Password:   hashAndSalt([]byte(newUser.Password)),
+		CreateTime: newUser.CreateTime,
+	}
 
-	userExists, err := u.store.IfUserExist(newUser)
+	userExists, err := u.store.IfUserExist(userDAO)
 	if err != nil {
 		return err
 	} else if userExists {
 		return fmt.Errorf("user with this username already exists")
 	}
 
-	emailExists, err := u.store.IfEmailExist(newUser)
+	emailExists, err := u.store.IfEmailExist(userDAO)
 	if err != nil {
 		return err
 	} else if emailExists {
 		return fmt.Errorf("user with this email already exists")
 	}
 
-	return u.store.Insert(newUser)
+	return u.store.Insert(userDAO)
 }
 
 func (u *UserService) LoginUser(req *LoginUserReq) (*LoginUserRes, error) {
@@ -79,23 +85,6 @@ func (u *UserService) LoginUser(req *LoginUserReq) (*LoginUserRes, error) {
 	}
 
 	return &LoginUserRes{AccessToken: ss, Username: req.Username, UserId: strconv.Itoa(userId)}, err
-}
-
-func (u *UserService) VerifyToken(tokenString string) (*MyJWTClaims, error) {
-	var jwtClaims MyJWTClaims
-	token, err := jwt.ParseWithClaims(tokenString, &jwtClaims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(secretKey), nil
-	})
-
-	if err != nil {
-		return &MyJWTClaims{}, err
-	}
-
-	if !token.Valid {
-		return &MyJWTClaims{}, fmt.Errorf("invalid token")
-	}
-
-	return &jwtClaims, nil
 }
 
 func (u *UserService) VerifyData(newUser User) error {

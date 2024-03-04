@@ -4,29 +4,36 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/golang-jwt/jwt/v5"
+	database "github.com/CyberPiess/instagram/internal/app/instagram/infrastructure/database/post"
+	"github.com/CyberPiess/instagram/internal/app/instagram/infrastructure/token"
 )
 
 //go:generate mockgen -source=service.go -destination=mocks/mock.go
 
-const (
-	secretKey = "secret"
-)
-
 type postStorage interface {
-	Create(CreatePOst CreatePost) error
+	Create(CreatePost database.CreatePost) error
+}
+
+type tokenInteraction interface {
+	VerifyToken(tokenString string) (*token.Credentials, error)
 }
 
 type PostService struct {
 	store postStorage
+	token tokenInteraction
 }
 
-func NewPostService(store postStorage) *PostService {
-	return &PostService{store: store}
+func NewPostService(store postStorage, token tokenInteraction) *PostService {
+	return &PostService{store: store,
+		token: token}
 }
 
 func (p *PostService) CreatePost(newPost Post) error {
-	jwtClaims, err := p.VerifyToken(newPost.AccessToken)
+	jwtClaims, err := p.token.VerifyToken(newPost.AccessToken)
+
+	if newPost.PostImage == "" {
+		return fmt.Errorf("no post supplied")
+	}
 	if err != nil {
 		return err
 	}
@@ -35,28 +42,11 @@ func (p *PostService) CreatePost(newPost Post) error {
 		return err
 	}
 
-	postCreate := CreatePost{
+	postCreate := database.CreatePost{
 		PostImage:       newPost.PostImage,
 		PostDescription: newPost.PostDescription,
 		CreateTime:      newPost.CreateTime,
 		UserId:          userId,
 	}
 	return p.store.Create(postCreate)
-}
-
-func (p *PostService) VerifyToken(tokenString string) (*Credentials, error) {
-	var jwtClaims Credentials
-	token, err := jwt.ParseWithClaims(tokenString, &jwtClaims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(secretKey), nil
-	})
-
-	if err != nil {
-		return &Credentials{}, err
-	}
-
-	if !token.Valid {
-		return &Credentials{}, fmt.Errorf("invalid token")
-	}
-
-	return &jwtClaims, nil
 }

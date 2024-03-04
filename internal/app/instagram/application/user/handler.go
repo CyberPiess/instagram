@@ -11,7 +11,6 @@ import (
 type userService interface {
 	CreateUser(newUser user.User) error
 	LoginUser(logUser *user.LoginUserReq) (*user.LoginUserRes, error)
-	VerifyToken(tokenString string) (*user.MyJWTClaims, error)
 	VerifyData(newUser user.User) error
 }
 

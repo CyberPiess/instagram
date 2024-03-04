@@ -7,7 +7,7 @@ package mock_user
 import (
 	reflect "reflect"
 
-	user "github.com/CyberPiess/instagram/internal/app/instagram/domain/user"
+	user "github.com/CyberPiess/instagram/internal/app/instagram/infrastructure/database/user"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -35,7 +35,7 @@ func (m *MockuserStorage) EXPECT() *MockuserStorageMockRecorder {
 }
 
 // IfEmailExist mocks base method.
-func (m *MockuserStorage) IfEmailExist(newUSer user.User) (bool, error) {
+func (m *MockuserStorage) IfEmailExist(newUSer user.UserDAO) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IfEmailExist", newUSer)
 	ret0, _ := ret[0].(bool)
@@ -50,7 +50,7 @@ func (mr *MockuserStorageMockRecorder) IfEmailExist(newUSer interface{}) *gomock
 }
 
 // IfUserExist mocks base method.
-func (m *MockuserStorage) IfUserExist(newUser user.User) (bool, error) {
+func (m *MockuserStorage) IfUserExist(newUser user.UserDAO) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IfUserExist", newUser)
 	ret0, _ := ret[0].(bool)
@@ -65,7 +65,7 @@ func (mr *MockuserStorageMockRecorder) IfUserExist(newUser interface{}) *gomock.
 }
 
 // Insert mocks base method.
-func (m *MockuserStorage) Insert(newUser user.User) error {
+func (m *MockuserStorage) Insert(newUser user.UserDAO) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Insert", newUser)
 	ret0, _ := ret[0].(error)

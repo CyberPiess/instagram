@@ -8,9 +8,10 @@ import (
 	"github.com/CyberPiess/instagram/internal/app/instagram/domain/post"
 )
 
+//go:generate mockgen -source=handler.go -destination=mocks/post_service_mock.go
+
 type postService interface {
 	CreatePost(newPost post.Post) error
-	VerifyToken(tokenString string) (*post.Credentials, error)
 }
 
 type Post struct {
@@ -23,6 +24,11 @@ func NewPostHandler(service postService) *Post {
 
 func (p *Post) PostCreate() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			http.Error(w, http.StatusText(400), 400)
+			return
+		}
+
 		cookie, err := r.Cookie("jwt")
 		if err != nil {
 			http.Error(w, "No Token Found", 400)
@@ -36,10 +42,7 @@ func (p *Post) PostCreate() http.HandlerFunc {
 			http.Error(w, "Wrong data supplied", 400)
 			return
 		}
-		if post.PostImage == "" {
-			http.Error(w, "No post supplied", 400)
-			return
-		}
+
 		post.CreateTime = time.Now()
 		post.AccessToken = cookie.Value
 
