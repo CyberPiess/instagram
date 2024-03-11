@@ -10,6 +10,7 @@ import (
 	database "github.com/CyberPiess/instagram/internal/app/instagram/infrastructure/database/post"
 	"github.com/CyberPiess/instagram/internal/app/instagram/infrastructure/minio/post"
 	"github.com/CyberPiess/instagram/internal/app/instagram/infrastructure/token"
+	"github.com/google/uuid"
 )
 
 type postStorage interface {
@@ -63,14 +64,17 @@ func (p *PostService) CreatePost(newPost Post, image Image) error {
 		return fmt.Errorf("error copying file")
 	}
 
+	photoId := uuid.New()
+
 	imageDTO := post.ImageDTO{
-		ObjectName:  image.ObjectName,
+		ObjectName:  photoId.String(),
 		FilePath:    image.ObjectName,
 		ContentType: image.ContentType,
 		FileSize:    image.FileSize,
 	}
 
 	p.minio.UploadFile(imageDTO)
+	postCreate.PostImage = photoId.String()
 
 	return p.store.Create(postCreate)
 }
