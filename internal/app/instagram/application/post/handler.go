@@ -1,17 +1,15 @@
+//go:generate mockgen -source=handler.go -destination=mocks/post_service_mock.go
 package application
 
 import (
-	"encoding/json"
 	"net/http"
 	"time"
 
 	"github.com/CyberPiess/instagram/internal/app/instagram/domain/post"
 )
 
-//go:generate mockgen -source=handler.go -destination=mocks/post_service_mock.go
-
 type postService interface {
-	CreatePost(newPost post.Post) error
+	CreatePost(newPost post.Post, image post.Image) error
 }
 
 type Post struct {
@@ -24,7 +22,7 @@ func NewPostHandler(service postService) *Post {
 
 func (p *Post) PostCreate() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "POST" {
+		if r.Method != http.MethodPost {
 			http.Error(w, http.StatusText(400), 400)
 			return
 		}
@@ -35,18 +33,27 @@ func (p *Post) PostCreate() http.HandlerFunc {
 			return
 		}
 
-		var post post.Post
+		var newPost post.Post
 
-		err = json.NewDecoder(r.Body).Decode(&post)
+		newPost.PostDescription = r.FormValue("PostDescription")
+		newPost.CreateTime = time.Now()
+		newPost.AccessToken = cookie.Value
+
+		file, header, err := r.FormFile("myFile")
 		if err != nil {
 			http.Error(w, "Wrong data supplied", 400)
 			return
 		}
+		defer file.Close()
 
-		post.CreateTime = time.Now()
-		post.AccessToken = cookie.Value
+		image := post.Image{
+			ObjectName:  header.Filename,
+			File:        file,
+			ContentType: header.Header["Content-Type"][0],
+			FileSize:    header.Size,
+		}
 
-		err = p.service.CreatePost(post)
+		err = p.service.CreatePost(newPost, image)
 		if err != nil {
 			http.Error(w, err.Error(), 400)
 			return

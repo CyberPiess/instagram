@@ -2,7 +2,7 @@ package user
 
 import "time"
 
-type UserDAO struct {
+type UserDTO struct {
 	Username   string
 	UserEmail  string
 	Password   string

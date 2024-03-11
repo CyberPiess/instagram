@@ -36,7 +36,7 @@ func (m *MockuserStorage) EXPECT() *MockuserStorageMockRecorder {
 }
 
 // IfEmailExist mocks base method.
-func (m *MockuserStorage) IfEmailExist(newUSer user.UserDAO) (bool, error) {
+func (m *MockuserStorage) IfEmailExist(newUSer user.UserDTO) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IfEmailExist", newUSer)
 	ret0, _ := ret[0].(bool)
@@ -51,7 +51,7 @@ func (mr *MockuserStorageMockRecorder) IfEmailExist(newUSer interface{}) *gomock
 }
 
 // IfUserExist mocks base method.
-func (m *MockuserStorage) IfUserExist(newUser user.UserDAO) (bool, error) {
+func (m *MockuserStorage) IfUserExist(newUser user.UserDTO) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IfUserExist", newUser)
 	ret0, _ := ret[0].(bool)
@@ -66,7 +66,7 @@ func (mr *MockuserStorageMockRecorder) IfUserExist(newUser interface{}) *gomock.
 }
 
 // Insert mocks base method.
-func (m *MockuserStorage) Insert(newUser user.UserDAO) error {
+func (m *MockuserStorage) Insert(newUser user.UserDTO) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Insert", newUser)
 	ret0, _ := ret[0].(error)

@@ -22,7 +22,26 @@ services:
       PGADMIN_DEFAULT_PASSWORD: password
     volumes:
       - pgadmin-data:/var/lib/pgadmin
+  minio:
+    image: bitnami/minio:latest
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    networks:
+      - server_net
+    volumes:
+      - 'minio_data:/data'
+    environment:
+      - MINIO_ROOT_USER=user
+      - MINIO_ROOT_PASSWORD=password
+
+networks:
+  server_net:
+    driver: bridge
+
 
 volumes:
   local_pgdata:
   pgadmin-data:
+  minio_data:
+    driver: local

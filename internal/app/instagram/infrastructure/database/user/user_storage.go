@@ -1,3 +1,4 @@
+//go:generate mockgen -source=user_storage.go -destination=mocks/mock_storage.go
 package user
 
 import (
@@ -5,8 +6,6 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 )
-
-//go:generate mockgen -source=user_storage.go -destination=mocks/mock_storage.go
 
 type UserRepository struct {
 	db *sql.DB
@@ -16,7 +15,7 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (ur *UserRepository) Insert(newUser UserDAO) error {
+func (ur *UserRepository) Insert(newUser UserDTO) error {
 
 	query := sq.Insert("public.user").
 		Columns("username", "user_email", "hashed_password", "create_time").
@@ -28,7 +27,7 @@ func (ur *UserRepository) Insert(newUser UserDAO) error {
 	return err
 }
 
-func (ur *UserRepository) IfUserExist(newUser UserDAO) (bool, error) {
+func (ur *UserRepository) IfUserExist(newUser UserDTO) (bool, error) {
 	var exists bool
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
@@ -43,7 +42,7 @@ func (ur *UserRepository) IfUserExist(newUser UserDAO) (bool, error) {
 	return exists, err
 }
 
-func (ur *UserRepository) IfEmailExist(newUser UserDAO) (bool, error) {
+func (ur *UserRepository) IfEmailExist(newUser UserDTO) (bool, error) {
 	var exists bool
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 

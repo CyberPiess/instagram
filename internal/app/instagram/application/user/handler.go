@@ -1,3 +1,4 @@
+//go:generate mockgen -source=handler.go -destination=mocks/mock.go
 package application
 
 import (
@@ -7,7 +8,6 @@ import (
 	"github.com/CyberPiess/instagram/internal/app/instagram/domain/user"
 )
 
-//go:generate mockgen -source=handler.go -destination=mocks/mock.go
 type userService interface {
 	CreateUser(newUser user.User) error
 	LoginUser(logUser *user.LoginUserReq) (*user.LoginUserRes, error)
@@ -24,7 +24,7 @@ func NewUserHandler(service userService) *User {
 
 func (u *User) UserCreate() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "POST" {
+		if r.Method != http.MethodPost {
 			http.Error(w, http.StatusText(400), 400)
 			return
 		}
@@ -51,7 +51,7 @@ func (u *User) UserCreate() http.HandlerFunc {
 
 func (u *User) UserLogin() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "POST" {
+		if r.Method != http.MethodPost {
 			http.Error(w, http.StatusText(400), 400)
 			return
 		}
@@ -78,6 +78,7 @@ func (u *User) UserLogin() http.HandlerFunc {
 			Name:   "jwt",
 			Value:  logedUser.AccessToken,
 			MaxAge: 3600,
+			Path:   "/",
 
 			Secure:   false,
 			HttpOnly: true,

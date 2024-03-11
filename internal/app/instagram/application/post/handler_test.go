@@ -33,7 +33,7 @@ func TestPostCreate(t *testing.T) {
 
 	postHandler := NewPostHandler(mockPostService)
 
-	mockPostService.EXPECT().CreatePost(gomock.Any()).Return(nil).AnyTimes()
+	mockPostService.EXPECT().CreatePost(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
 	tests := []struct {
 		name string

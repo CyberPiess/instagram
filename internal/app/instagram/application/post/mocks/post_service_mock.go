@@ -35,30 +35,15 @@ func (m *MockpostService) EXPECT() *MockpostServiceMockRecorder {
 }
 
 // CreatePost mocks base method.
-func (m *MockpostService) CreatePost(newPost post.Post) error {
+func (m *MockpostService) CreatePost(newPost post.Post, image post.Image) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreatePost", newPost)
+	ret := m.ctrl.Call(m, "CreatePost", newPost, image)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreatePost indicates an expected call of CreatePost.
-func (mr *MockpostServiceMockRecorder) CreatePost(newPost interface{}) *gomock.Call {
+func (mr *MockpostServiceMockRecorder) CreatePost(newPost, image interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePost", reflect.TypeOf((*MockpostService)(nil).CreatePost), newPost)
-}
-
-// VerifyToken mocks base method.
-func (m *MockpostService) VerifyToken(tokenString string) (*post.Credentials, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyToken", tokenString)
-	ret0, _ := ret[0].(*post.Credentials)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// VerifyToken indicates an expected call of VerifyToken.
-func (mr *MockpostServiceMockRecorder) VerifyToken(tokenString interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyToken", reflect.TypeOf((*MockpostService)(nil).VerifyToken), tokenString)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePost", reflect.TypeOf((*MockpostService)(nil).CreatePost), newPost, image)
 }

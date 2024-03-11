@@ -1,14 +1,16 @@
+//go:generate mockgen -source=service.go -destination=mocks/mock.go
 package post
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"strconv"
 
 	database "github.com/CyberPiess/instagram/internal/app/instagram/infrastructure/database/post"
+	"github.com/CyberPiess/instagram/internal/app/instagram/infrastructure/minio/post"
 	"github.com/CyberPiess/instagram/internal/app/instagram/infrastructure/token"
 )
-
-//go:generate mockgen -source=service.go -destination=mocks/mock.go
 
 type postStorage interface {
 	Create(CreatePost database.CreatePost) error
@@ -19,22 +21,24 @@ type tokenInteraction interface {
 	CreateToken(userId int) (string, error)
 }
 
+type minioStorage interface {
+	UploadFile(post.ImageDTO)
+}
 type PostService struct {
 	store postStorage
 	token tokenInteraction
+	minio minioStorage
 }
 
-func NewPostService(store postStorage, token tokenInteraction) *PostService {
+func NewPostService(store postStorage, token tokenInteraction, minio minioStorage) *PostService {
 	return &PostService{store: store,
-		token: token}
+		token: token,
+		minio: minio}
 }
 
-func (p *PostService) CreatePost(newPost Post) error {
+func (p *PostService) CreatePost(newPost Post, image Image) error {
 	jwtClaims, err := p.token.VerifyToken(newPost.AccessToken)
 
-	if newPost.PostImage == "" {
-		return fmt.Errorf("no post supplied")
-	}
 	if err != nil {
 		return err
 	}
@@ -44,10 +48,29 @@ func (p *PostService) CreatePost(newPost Post) error {
 	}
 
 	postCreate := database.CreatePost{
-		PostImage:       newPost.PostImage,
 		PostDescription: newPost.PostDescription,
 		CreateTime:      newPost.CreateTime,
 		UserId:          userId,
 	}
+
+	dst, err := os.Create(image.ObjectName)
+	if err != nil {
+		return fmt.Errorf("error creating file")
+
+	}
+	defer dst.Close()
+	if _, err := io.Copy(dst, image.File); err != nil {
+		return fmt.Errorf("error copying file")
+	}
+
+	imageDTO := post.ImageDTO{
+		ObjectName:  image.ObjectName,
+		FilePath:    image.ObjectName,
+		ContentType: image.ContentType,
+		FileSize:    image.FileSize,
+	}
+
+	p.minio.UploadFile(imageDTO)
+
 	return p.store.Create(postCreate)
 }

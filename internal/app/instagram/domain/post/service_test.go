@@ -13,6 +13,7 @@ import (
 
 type args struct {
 	testPost Post
+	image    Image
 }
 
 func TestCreatePost(t *testing.T) {
@@ -21,7 +22,8 @@ func TestCreatePost(t *testing.T) {
 
 	mockPostStorage := mock_post.NewMockpostStorage(ctrl)
 	mockToken := mock_post.NewMocktokenInteraction(ctrl)
-	postService := NewPostService(mockPostStorage, mockToken)
+	mockMinio := mock_post.NewMockminioStorage(ctrl)
+	postService := NewPostService(mockPostStorage, mockToken, mockMinio)
 
 	mockPostStorage.EXPECT().Create(gomock.Any()).Return(nil).AnyTimes()
 	mockToken.EXPECT().VerifyToken(gomock.Any()).Return(&token.Credentials{UserId: "1"}, nil).AnyTimes()
@@ -33,28 +35,30 @@ func TestCreatePost(t *testing.T) {
 	}{
 		{
 			name: "Empty post image",
-			args: args{testPost: Post{PostImage: "",
+			args: args{testPost: Post{
 				PostDescription: "someDescription",
 				CreateTime:      time.Now(),
 				UserId:          1,
 				AccessToken:     "someTokenString"},
+				image: Image{},
 			},
 			want: fmt.Errorf("no post supplied"),
 		},
 		{
 			name: "Correct data",
-			args: args{testPost: Post{PostImage: "someImage",
+			args: args{testPost: Post{
 				PostDescription: "someDescription",
 				CreateTime:      time.Now(),
 				UserId:          1,
 				AccessToken:     "someTokenString"},
+				image: Image{},
 			},
 			want: nil,
 		},
 	}
 
 	for _, tt := range tests {
-		err := postService.CreatePost(tt.args.testPost)
+		err := postService.CreatePost(tt.args.testPost, tt.args.image)
 		assert.Equal(t, tt.want, err)
 	}
 

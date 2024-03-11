@@ -1,3 +1,4 @@
+//go:generate mockgen -source=service.go -destination=mocks/mock.go
 package user
 
 import (
@@ -8,12 +9,10 @@ import (
 	"github.com/CyberPiess/instagram/internal/app/instagram/infrastructure/token"
 )
 
-//go:generate mockgen -source=service.go -destination=mocks/mock.go
-
 type userStorage interface {
-	Insert(newUser user.UserDAO) error
-	IfUserExist(newUser user.UserDAO) (bool, error)
-	IfEmailExist(newUSer user.UserDAO) (bool, error)
+	Insert(newUser user.UserDTO) error
+	IfUserExist(newUser user.UserDTO) (bool, error)
+	IfEmailExist(newUSer user.UserDTO) (bool, error)
 	SelectUser(username string) (int, string, error)
 }
 
@@ -39,28 +38,28 @@ func (u *UserService) CreateUser(newUser User) error {
 		return err
 	}
 
-	userDAO := user.UserDAO{
+	userDTO := user.UserDTO{
 		Username:   newUser.Username,
 		UserEmail:  newUser.UserEmail,
 		Password:   hashAndSalt([]byte(newUser.Password)),
 		CreateTime: newUser.CreateTime,
 	}
 
-	userExists, err := u.store.IfUserExist(userDAO)
+	userExists, err := u.store.IfUserExist(userDTO)
 	if err != nil {
 		return err
 	} else if userExists {
 		return fmt.Errorf("user with this username already exists")
 	}
 
-	emailExists, err := u.store.IfEmailExist(userDAO)
+	emailExists, err := u.store.IfEmailExist(userDTO)
 	if err != nil {
 		return err
 	} else if emailExists {
 		return fmt.Errorf("user with this email already exists")
 	}
 
-	return u.store.Insert(userDAO)
+	return u.store.Insert(userDTO)
 }
 
 func (u *UserService) LoginUser(req *LoginUserReq) (*LoginUserRes, error) {
