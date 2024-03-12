@@ -11,17 +11,6 @@ services:
       POSTGRES_PASSWORD: password
     volumes:
       - local_pgdata:/var/lib/postgresql/data
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin4_container
-    restart: always
-    ports:
-      - "5555:80"
-    environment:
-      PGADMIN_DEFAULT_EMAIL: user-name@domain-name.com
-      PGADMIN_DEFAULT_PASSWORD: password
-    volumes:
-      - pgadmin-data:/var/lib/pgadmin
   minio:
     image: bitnami/minio:latest
     ports:
