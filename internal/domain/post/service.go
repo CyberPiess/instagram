@@ -2,9 +2,8 @@
 package post
 
 import (
-	"fmt"
+	"bytes"
 	"io"
-	"os"
 	"strconv"
 
 	database "github.com/CyberPiess/instagram/internal/infrastructure/database/post"
@@ -54,21 +53,16 @@ func (p *PostService) CreatePost(newPost Post, image Image) error {
 		UserId:          userId,
 	}
 
-	dst, err := os.Create(image.ObjectName)
-	if err != nil {
-		return fmt.Errorf("error creating file")
-
-	}
-	defer dst.Close()
-	if _, err := io.Copy(dst, image.File); err != nil {
-		return fmt.Errorf("error copying file")
+	buf := bytes.NewBuffer(nil)
+	if _, err := io.Copy(buf, image.File); err != nil {
+		return err
 	}
 
 	photoId := uuid.New()
 
 	imageDTO := post.ImageDTO{
 		ObjectName:  photoId.String(),
-		FilePath:    image.ObjectName,
+		FileBuff:    buf,
 		ContentType: image.ContentType,
 		FileSize:    image.FileSize,
 	}

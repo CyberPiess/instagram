@@ -1,6 +1,7 @@
 package post
 
 import (
+	"bytes"
 	"log"
 
 	"github.com/minio/minio-go"
@@ -19,7 +20,9 @@ func NewMinioPostStorage(minioClient *minio.Client) *MinioPostStorage {
 }
 
 func (m *MinioPostStorage) UploadFile(image ImageDTO) {
-	n, err := m.minioClient.FPutObject(bucketName, image.ObjectName, image.FilePath, minio.PutObjectOptions{ContentType: image.ContentType})
+	reader := bytes.NewReader(image.FileBuff.Bytes())
+	n, err := m.minioClient.PutObject(bucketName, image.ObjectName,
+		reader, image.FileSize, minio.PutObjectOptions{ContentType: image.ContentType})
 	if err != nil {
 		log.Fatalln(err)
 	}
