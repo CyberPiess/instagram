@@ -1,10 +1,8 @@
-CREATE TABLE IF NOT EXISTS public.post
+create table public.post
 (
-    "postId" integer NOT NULL DEFAULT nextval('"Posts_postId_seq"'::regclass),
-    "postImage" character varying(200) COLLATE pg_catalog."default" NOT NULL,
-    "postDescription" character varying(350) COLLATE pg_catalog."default",
-    "createTime" timestamp(6) without time zone NOT NULL,
-    "userId" integer NOT NULL
-)
-
-TABLESPACE pg_default;
+	post_id SERIAL PRIMARY KEY,
+	post_image character varying(200),
+	post_description character varying(350),
+	create_time timestamp(6) without time zone,
+	user_id integer
+);
