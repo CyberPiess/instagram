@@ -3,9 +3,11 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	appPost "github.com/CyberPiess/instagram/internal/application/post"
 	appUser "github.com/CyberPiess/instagram/internal/application/user"
+	"github.com/joho/godotenv"
 
 	domainPost "github.com/CyberPiess/instagram/internal/domain/post"
 	domainUser "github.com/CyberPiess/instagram/internal/domain/user"
@@ -22,26 +24,35 @@ import (
 
 func main() {
 
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	mux := http.NewServeMux()
 
 	db, err := database.NewPostgresDb(database.Config{
-		Host:     "localhost",
-		Port:     "5432",
-		Username: "admin",
-		DBName:   "Instagram",
-		SSLMode:  "disable",
-		Password: "password",
-	})
-
-	minio, err := minio.NewMinioConnection(minio.MinioCred{
-		Endpoint:        "localhost:9000",
-		AccessKeyId:     "user",
-		SecretAccessKey: "password",
-		UseSSL:          false,
+		Host:     os.Getenv("PG_HOST"),
+		Port:     os.Getenv("PG_PORT"),
+		Username: os.Getenv("POSTGRES_USER"),
+		DBName:   os.Getenv("DBNAME"),
+		SSLMode:  os.Getenv("SSLMODE"),
+		Password: os.Getenv("POSTGRES_PASSWORD"),
 	})
 
 	if err != nil {
 		log.Fatal("failed to initialize db: %s", err.Error())
+	}
+
+	minio, err := minio.NewMinioConnection(minio.MinioCred{
+		Endpoint:        os.Getenv("MINIO_ENDPOINT"),
+		AccessKeyId:     os.Getenv("MINIO_ROOT_USER"),
+		SecretAccessKey: os.Getenv("MINIO_ROOT_PASSWORD"),
+		UseSSL:          false,
+	})
+
+	if err != nil {
+		log.Fatal("failed to initialize minio: %s", err.Error())
 	}
 
 	userStorage := userRepo.NewUserRepository(db)
